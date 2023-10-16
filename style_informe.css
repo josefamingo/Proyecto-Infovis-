@@ -1,0 +1,30 @@
+body{
+    margin: 50px 50px 50px 50px;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.titulo{
+    color:#B00710;
+}
+
+h1{
+    font-size: 50px;
+    color:#E50914;
+}
+
+h2{
+    font-size: 20px;
+}
+
+p{
+    font-size: 12px;
+}
+
+h3{
+    font-size: 35px;
+}
+
+h4{
+    font-size: 25px;
+}
