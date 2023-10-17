@@ -113,7 +113,7 @@ d3.csv("data.csv", parseo)
       tooltip
       .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
       Estreno: ${d.estreno_fecha}<br>Adición a Netflix: ${d.adicion}
-      <br>Duración: ${d.duracion}<br>Calificación: ${d.calificacion}`)
+      <br>Duración: ${d.duracion} min<br>Calificación: ${d.calificacion}<br>País: ${d.pais}`)
       .style("opacity", 1)
       .style("left", (event.pageX + 10) + "px")
       .style("top", (event.pageY - 28) + "px");
