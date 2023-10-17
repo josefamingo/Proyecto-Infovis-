@@ -28,9 +28,9 @@ function parseo(d) {
     director: d.Director,
     pais: d["País"],
     estreno_fecha: d["Año estreno (Fecha)"],
-    estreno_ano: parseInt(d["Año estreno (Número)"]),
+    estreno_ano: +d["Año estreno (Número)"],
     adicion: d["Fecha adición"],
-    calificacion: +d["Calificación"],
+    calificacion: d["Calificación"],
     duracion: +d["Duración"],
     categoria_duracion: d["Categoría Duración"],
     latitud_random: +d["Latitud Random"],
@@ -38,19 +38,20 @@ function parseo(d) {
   };
 }
 
-function Color_calificacion(calificacion) {
+function Color(calificacion) {
   const colorMap = {
-      'G': "orange",
-      'NR': "blue",
+      'G': "rgb(240, 115, 5)",
+      'NR': "",
       "PG": "green",
       "PG-13": "green",
       "R": "purple",
       "TV-14": "yellow",
-      "TV-G": "yellow",
-      "TV-MA": "yellow",
-      "TV-PG": "yellow",
-      "TV-Y7": "yellow",
-      "UR": "red"
+      "TV-G": "rgb(5, 240, 205)",
+      "TV-MA": "blue",
+      "TV-PG": "rgb(173, 240, 5)",
+      "TV-Y7": "red",
+      "TV-Y": "red",
+      "UR": ""
     };
 
   return colorMap[calificacion] 
@@ -65,31 +66,63 @@ d3.csv("data.csv", parseo)
     const escalaLongitud= d3.scaleLinear()
       .domain([minimoLongitud, maximoLongitud])
       .range([20, 980])
-    console.log(escalaLongitud)
     
     minimoLatitud = d3.min(datos, d => d.latitud_random);
     maximoLatitud = d3.max(datos, d => d.latitud_random);
     const escalaLatitud= d3.scaleLinear()
       .domain([minimoLatitud, maximoLatitud])
       .range([20, 780])
-    console.log(escalaLatitud)
     
-    const peliculas = SVG1.selectAll(".pelicula")
-      .data(datos)
-      .enter() 
-
-    peliculas.append("g")
+    minimoDuracion = d3.min(datos, d => d.duracion);
+    maximoDuracion = d3.max(datos, d => d.duracion);
+    const escalaDuracion= d3.scaleLinear()
+      .domain([minimoDuracion, maximoDuracion])
+      .range([2, 10])
+    
+    const peliculas = SVG1
+    .selectAll(".pelicula")
+    .data(datos)
+    .join((enter) =>{
+    
+    const P = enter
+      .append("g")
+      .attr("class", "pelicula")
+      .style("opacity", 1);
+    
+    P.append("g")
       .attr("class", "pelicula")
       .style("opacity", 1)
       .append("circle")
       .attr("class", "circulo")
-      .attr("fill", "red")// (d) => Color(d.calificacion))
+      .attr("fill", (d) => Color(d.calificacion))
       .attr("cx", (d) => escalaLongitud(d.longitud_random))
       .attr("cy", (d) => escalaLatitud(d.latitud_random))
       .style("cursor", "pointer")
       .attr("r", 0) 
       .transition() 
       .duration(500)
-      .attr("r", 10);
-  });
+      .attr("r", (d) => escalaDuracion(d.duracion));
+      });
+
+      SVG1.selectAll("circle")
+      .on("mouseover", (event, d) => {
+        d3.select(event.currentTarget) // Selecciona el círculo actual
+      .style("stroke", "white") // Establece el borde blanco
+      .style("stroke-width", 2); // Ancho del borde
+
+      tooltip
+      .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
+      Estreno: ${d.estreno_fecha}<br>Adición a Netflix: ${d.adicion}
+      <br>Duración: ${d.duracion}<br>Calificación: ${d.calificacion}`)
+      .style("opacity", 1)
+      .style("left", (event.pageX + 10) + "px")
+      .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", (event, d) => {
+        d3.select(event.currentTarget) // Selecciona el círculo actual
+        .style("stroke", "none"); // Elimina el borde
+      tooltip.style("opacity", 0);
+      })
+
+    });
 
