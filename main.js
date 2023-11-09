@@ -57,6 +57,7 @@ function Color(calificacion) {
   return colorMap[calificacion] 
 };
 
+
 d3.csv("data.csv", parseo)
   .then((datos) => {
     console.log(datos);
@@ -79,10 +80,57 @@ d3.csv("data.csv", parseo)
       .domain([minimoDuracion, maximoDuracion])
       .range([2, 10])
     
+      const datosPorPais = d3.group(datos, d => d.pais);
+
+      function dibujarLineasPorPais(peliculasPorPais, visible = false) {
+        // Eliminar líneas existentes antes de volver a dibujar
+        SVG1.selectAll(".linea-conexion").remove();
+      
+        peliculasPorPais.forEach((peliculasEnPais) => {
+          for (let i = 0; i < peliculasEnPais.length - 1; i++) {
+            const pelicula1 = peliculasEnPais[i];
+            const pelicula2 = peliculasEnPais[i + 1];
+      
+            // Dibujar línea solo si es visible
+            if (visible) {
+              SVG1.append("line")
+                .attr("class", "linea-conexion")
+                .attr("x1", escalaLongitud(pelicula1.longitud_random))
+                .attr("y1", escalaLatitud(pelicula1.latitud_random))
+                .attr("x2", escalaLongitud(pelicula2.longitud_random))
+                .attr("y2", escalaLatitud(pelicula2.latitud_random))
+                .style("stroke", "gray")
+                .style("stroke-width", 1);
+            }
+          }
+        });
+      }
+      
+
+      // function dibujarLineasPorPais(infopaises) {
+      //   infopaises.forEach((peliculasEnPais) => {
+      //     for (let i = 0; i < peliculasEnPais.length - 1; i++) {
+      //       const pelicula1 = peliculasEnPais[i];
+      //       const pelicula2 = peliculasEnPais[i + 1];
+      
+      //       // Dibujar línea entre las dos burbujas
+      //       SVG1.append("line")
+      //         .attr("class", "linea-conexion")
+      //         .attr("x1", escalaLongitud(pelicula1.longitud_random))
+      //         .attr("y1", escalaLatitud(pelicula1.latitud_random))
+      //         .attr("x2", escalaLongitud(pelicula2.longitud_random))
+      //         .attr("y2", escalaLatitud(pelicula2.latitud_random))
+      //         .style("stroke", "gray")
+      //         .style("stroke-width", 1);
+      //     }
+      //   });
+      // }    
+    
+    dibujarLineasPorPais(datosPorPais)
     const peliculas = SVG1
-    .selectAll(".pelicula")
-    .data(datos)
-    .join((enter) =>{
+      .selectAll(".pelicula")
+      .data(datos)
+      .join((enter) =>{
     
     const P = enter
       .append("g")
@@ -123,6 +171,22 @@ d3.csv("data.csv", parseo)
         .style("stroke", "none"); // Elimina el borde
       tooltip.style("opacity", 0);
       })
+      .on("click", (event, d) => {
+        const paisSeleccionado = d.pais;
 
+    // Verificar si las líneas están visibles
+    const lineasVisible = SVG1.selectAll(".linea-conexion").size() > 0;
+
+    // Obtener las películas del país seleccionado
+    const peliculasEnPais = datos.filter(item => item.pais === paisSeleccionado);
+
+    // Eliminar líneas existentes antes de volver a dibujar
+    SVG1.selectAll(".linea-conexion").remove();
+
+    // Si las líneas no estaban visibles o pertenecen a un país diferente, mostrarlas
+    if (!lineasVisible || SVG1.selectAll(".linea-conexion").data()[0] === undefined) {
+      dibujarLineasPorPais([peliculasEnPais], true);
+    }
+  });
     });
 
