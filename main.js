@@ -2,7 +2,7 @@ const SVG1 = d3.select("#vis-1").append("svg");
 const SVG2 = d3.select("#vis-2").append("svg");
 
 const WIDTH_VIS_1 = 1000;
-const HEIGHT_VIS_1 = 800;
+const HEIGHT_VIS_1 = 500;
 
 const WIDTH_VIS_2 = 800;
 const HEIGHT_VIS_2 = 800;
@@ -20,7 +20,6 @@ let tooltip = d3.select("body").append("div")
     .style("border-radius", "8px")
     .style("padding", "4px")
     .style("position", "absolute");
-
 
 function parseo(d) {
   return {
@@ -62,25 +61,64 @@ d3.csv("data.csv", parseo)
   .then((datos) => {
     console.log(datos);
 
-    minimoLongitud = d3.min(datos, d => d.longitud_random);
-    maximoLongitud = d3.max(datos, d => d.longitud_random);
-    const escalaLongitud= d3.scaleLinear()
-      .domain([minimoLongitud, maximoLongitud])
-      .range([20, 980])
-    
-    minimoLatitud = d3.min(datos, d => d.latitud_random);
-    maximoLatitud = d3.max(datos, d => d.latitud_random);
-    const escalaLatitud= d3.scaleLinear()
-      .domain([minimoLatitud, maximoLatitud])
-      .range([20, 780])
-    
-    minimoDuracion = d3.min(datos, d => d.duracion);
-    maximoDuracion = d3.max(datos, d => d.duracion);
-    const escalaDuracion= d3.scaleLinear()
-      .domain([minimoDuracion, maximoDuracion])
-      .range([2, 10])
-    
+      minimoLongitud = d3.min(datos, d => d.longitud_random);
+      maximoLongitud = d3.max(datos, d => d.longitud_random);
+      const escalaLongitud= d3.scaleLinear()
+        .domain([minimoLongitud, maximoLongitud])
+        .range([20, WIDTH_VIS_1 - 20])
+      
+      minimoLatitud = d3.min(datos, d => d.latitud_random);
+      maximoLatitud = d3.max(datos, d => d.latitud_random);
+      const escalaLatitud= d3.scaleLinear()
+        .domain([minimoLatitud, maximoLatitud])
+        .range([20, HEIGHT_VIS_1 - 20])
+      
+      minimoDuracion = d3.min(datos, d => d.duracion);
+      maximoDuracion = d3.max(datos, d => d.duracion);
+      const escalaDuracion= d3.scaleLinear()
+        .domain([minimoDuracion, maximoDuracion])
+        .range([5, 12.5])
+        
       const datosPorPais = d3.group(datos, d => d.pais);
+
+      let PELICULAS = [];
+      function preprocesarPeliculas(categoria, filtrar_dataset) {
+        if (PELICULAS.length == 0) {
+          PELICULAS = datos.filter(filtrar_dataset);
+            return 0;
+        }
+      
+        let data = JSON.parse(JSON.stringify(PELICULAS));
+
+        // Cada vez que se oprime filtrar, se llama nuevamente
+        // a preprocesarSatelites con filtro=true
+        d3.select("#filter-button").on("click", (event) => {
+            preprocesarSatelites(categoria, true);
+        })
+    
+        // Cada vez que se oprime Restaurar filtro, se llama nuevamente
+        // a preprocesarSatelites con filtro=false
+        d3.select("#filter-reset").on("click", (event) => {
+            preprocesarSatelites(categoria, false);
+        })
+  
+        // Cada vez que cambia el selector de orden, se llama nuevamente
+        // a crearSatelites para que actualice la visualización
+        d3.select("#order-by").on("change", (_) => {
+            let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
+            crearSatelites(data, categoria, filtrar_dataset, ordenar_dataset);
+        })
+        
+        // Llamamos a la segunda función encargada de crear los datos
+        let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
+        crearSatelites(data, categoria, filtrar_dataset, ordenar_dataset);
+    }
+    
+      d3.select("#showCat1").on("click", () => preprocesarPeliculas("menos", false));
+      d3.select("#showCat2").on("click", () => preprocesarPeliculas("entre", false));
+      d3.select("#showCat3").on("click", () => preprocesarPeliculas("mas", false));
+
+
 
       function dibujarLineasPorPais(peliculasPorPais, visible = false) {
         // Eliminar líneas existentes antes de volver a dibujar

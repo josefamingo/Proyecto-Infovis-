@@ -18,14 +18,40 @@
         <div id="vis-1">
         </div>
         
+        <div>
+            <h5>Selecionar subconjuto de peliculas</h5>
+            <button id="showCat1">Demoran menos 1 hora</button>
+            <button id="showCat2">Demoran entre 1 y 2 horas</button>
+            <button id="showCat3">Demoran mas de 3 horas</button>
+        </div>
+        <div>
+            <h5>Agrupar por</h5>
+            <select id="order-by">
+                <option value="porDefecto" selected>-</option>
+                <option value="pais">Pais</option>
+                <option value="clasificacion">Clasificacion</option>
+            </select>
+
+        </div>
         <button id="boton_limpiar">Limpiar</button>
         <!--agregar los botones de clear y no se si otro-->
         
+        <br><br>
+        <form id="form" class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+            <input type="radio" name="vis" value="vis1" checked>Option 1<br>
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="vis" value="vis2">Option 2<br>
+        </label>
+        </form>
+
         <h2>Detalle de películas</h2>
         <div id="vis-2">
         </div>
     </div>
     <script src="main.js"></script>
+    <script src="configuration.js"></script>
 </body>
 
 </html>
