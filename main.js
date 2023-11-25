@@ -104,27 +104,7 @@ d3.csv("data.csv", parseo)
             }
           }
         });
-      }
-      
-
-      // function dibujarLineasPorPais(infopaises) {
-      //   infopaises.forEach((peliculasEnPais) => {
-      //     for (let i = 0; i < peliculasEnPais.length - 1; i++) {
-      //       const pelicula1 = peliculasEnPais[i];
-      //       const pelicula2 = peliculasEnPais[i + 1];
-      
-      //       // Dibujar línea entre las dos burbujas
-      //       SVG1.append("line")
-      //         .attr("class", "linea-conexion")
-      //         .attr("x1", escalaLongitud(pelicula1.longitud_random))
-      //         .attr("y1", escalaLatitud(pelicula1.latitud_random))
-      //         .attr("x2", escalaLongitud(pelicula2.longitud_random))
-      //         .attr("y2", escalaLatitud(pelicula2.latitud_random))
-      //         .style("stroke", "gray")
-      //         .style("stroke-width", 1);
-      //     }
-      //   });
-      // }    
+      }  
     
     dibujarLineasPorPais(datosPorPais)
     const peliculas = SVG1
