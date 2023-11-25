@@ -5,13 +5,23 @@ const WIDTH_VIS_1 = 1000;
 const HEIGHT_VIS_1 = 500;
 
 const WIDTH_VIS_2 = 800;
-const HEIGHT_VIS_2 = 800;
+const HEIGHT_VIS_2 = 500;
 
 SVG1.attr("width", WIDTH_VIS_1).attr("height", HEIGHT_VIS_1);
 SVG2.attr("width", WIDTH_VIS_2).attr("height", HEIGHT_VIS_2);
 
 // Crear tooltip vacío con clase "tooltip". En el CSS está todo lo necesario
-let tooltip = d3.select("body").append("div")
+let tooltip1 = d3.select("body").append("div")
+    .style("opacity", 0)
+    .style("width", 200)
+    .style("height", 50)
+    .style("pointer-events", "none")
+    .style("background", "rgb(117, 168, 234)")
+    .style("border-radius", "8px")
+    .style("padding", "4px")
+    .style("position", "absolute");
+
+  let tooltip2 = d3.select("body").append("div")
     .style("opacity", 0)
     .style("width", 200)
     .style("height", 50)
@@ -78,6 +88,10 @@ d3.csv("data.csv", parseo)
       const escalaDuracion= d3.scaleLinear()
         .domain([minimoDuracion, maximoDuracion])
         .range([5, 12.5])
+
+      const escalaBarra = d3.scaleLinear()
+          .domain([minimoDuracion, maximoDuracion])
+          .range([20, WIDTH_VIS_2 - 20])
         
       const datosPorPais = d3.group(datos, d => d.pais);
 
@@ -144,7 +158,7 @@ d3.csv("data.csv", parseo)
         });
       }  
     
-    dibujarLineasPorPais(datosPorPais)
+
     const peliculas = SVG1
       .selectAll(".pelicula")
       .data(datos)
@@ -175,6 +189,8 @@ d3.csv("data.csv", parseo)
         d3.select(event.currentTarget) // Selecciona el círculo actual
       .style("stroke", "white") // Establece el borde blanco
       .style("stroke-width", 2); // Ancho del borde
+    
+      
 
       // Selecciona el botón por su ID
     const botonLimpiar = d3.select("#boton_limpiar");
@@ -185,7 +201,7 @@ d3.csv("data.csv", parseo)
     SVG1.selectAll(".linea-conexion").remove();
     });
 
-      tooltip
+      tooltip1
       .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
       Estreno: ${d.estreno_fecha}<br>Adición a Netflix: ${d.adicion}
       <br>Duración: ${d.duracion} min<br>Calificación: ${d.calificacion}<br>País: ${d.pais}`)
@@ -196,7 +212,7 @@ d3.csv("data.csv", parseo)
       .on("mouseout", (event, d) => {
         d3.select(event.currentTarget) // Selecciona el círculo actual
         .style("stroke", "none"); // Elimina el borde
-      tooltip.style("opacity", 0);
+      tooltip1.style("opacity", 0);
       })
       .on("click", (event, d) => {
         const paisSeleccionado = d.pais;
@@ -213,10 +229,84 @@ d3.csv("data.csv", parseo)
     // Si las líneas no estaban visibles o pertenecen a un país diferente, mostrarlas
     if (!lineasVisible || SVG1.selectAll(".linea-conexion").data()[0] === undefined) {
       dibujarLineasPorPais([peliculasEnPais], true);
+      // Obtener la duración de la película seleccionada
+      const duracionPelicula = escalaBarra(d.duracion);
+      const colorPelicula = d.calificacion;
+      const nombrePelicula = d.titulo
+
+      // Llamar a la función para dibujar las barras
+      dibujarBarras(datos, duracionPelicula, colorPelicula, nombrePelicula);
     }
+
+
+  
   });
     });
 
+let contador = 0; 
+function dibujarBarras(datos, duracion, color, nombre) {
+  const Grafico = SVG2.selectAll(".barra")
+        .data(datos)
+        .join(
+          enter => {
+          const S = enter.append("g")
+          .attr("class", "grupo_barra")
+          .style("opacity", 1)
+          .attr("transform", `translate(0, ${contador * 60})`);
+    
+            S.append('rect')
+              .attr("class", "rectangulo")
+              .attr("fill", d => Color(color))
+              .attr("y", 20)
+              .attr("x", 0)
+              .transition()
+              .duration(500)
+              .attr("height", 30)
+              .attr("width", duracion);
+    
+            S.append("text")
+              .attr("x", 10)
+              .attr("y", 10)
+              .attr("text-anchor", "left")
+              .attr("font-size", "12px")
+              .attr("fill", "white")
+              .text(nombre);
+          
+          contador++;
 
+          },
+    
+          update => {
+            update.select(".barra")
+              .transition()
+              .duration(500)
+              .attr("fill", d => Color(duracion));
+    
+            update.select("text").text(nombre);
+    
+            return update;
+          },
+    
+          exit => {
+            exit.selectAll(".barra").remove();
+            exit.selectAll("text").remove();
+            exit.remove();
+    
+            return exit;
+          }
+        );
+      
+        const botonLimpiar2 = d3.select("#boton_limpiar2");
+      
+        botonLimpiar2.on("click", function () {
+          SVG2.selectAll(".grupo_barra").remove(); 
+          contador = 0;
+        });
+
+    }
+    
+    
     
 
+
+    
