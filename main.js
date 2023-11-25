@@ -138,6 +138,15 @@ d3.csv("data.csv", parseo)
       .style("stroke", "white") // Establece el borde blanco
       .style("stroke-width", 2); // Ancho del borde
 
+      // Selecciona el botón por su ID
+    const botonLimpiar = d3.select("#boton_limpiar");
+
+    // Agrega un manejador de eventos para el clic en el botón
+    botonLimpiar.on("click", function () {
+      // Elimina todas las líneas existentes
+    SVG1.selectAll(".linea-conexion").remove();
+    });
+
       tooltip
       .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
       Estreno: ${d.estreno_fecha}<br>Adición a Netflix: ${d.adicion}
@@ -169,4 +178,7 @@ d3.csv("data.csv", parseo)
     }
   });
     });
+
+
+    
 
