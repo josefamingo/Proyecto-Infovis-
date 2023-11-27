@@ -66,10 +66,13 @@ function Color(calificacion) {
   return colorMap[calificacion] 
 };
 
+let datosOriginales;
 
 d3.csv("data.csv", parseo)
   .then((datos) => {
     console.log(datos);
+
+    datosOriginales = datos;
 
       minimoLongitud = d3.min(datos, d => d.longitud_random);
       maximoLongitud = d3.max(datos, d => d.longitud_random);
@@ -94,45 +97,6 @@ d3.csv("data.csv", parseo)
           .range([20, WIDTH_VIS_2 - 20])
         
       const datosPorPais = d3.group(datos, d => d.pais);
-
-      let PELICULAS = [];
-      function preprocesarPeliculas(categoria, filtrar_dataset) {
-        if (PELICULAS.length == 0) {
-          PELICULAS = datos.filter(filtrar_dataset);
-            return 0;
-        }
-      
-        let data = JSON.parse(JSON.stringify(PELICULAS));
-
-        // Cada vez que se oprime filtrar, se llama nuevamente
-        // a preprocesarSatelites con filtro=true
-        d3.select("#filter-button").on("click", (event) => {
-            preprocesarSatelites(categoria, true);
-        })
-    
-        // Cada vez que se oprime Restaurar filtro, se llama nuevamente
-        // a preprocesarSatelites con filtro=false
-        d3.select("#filter-reset").on("click", (event) => {
-            preprocesarSatelites(categoria, false);
-        })
-  
-        // Cada vez que cambia el selector de orden, se llama nuevamente
-        // a crearSatelites para que actualice la visualización
-        d3.select("#order-by").on("change", (_) => {
-            let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
-            crearSatelites(data, categoria, filtrar_dataset, ordenar_dataset);
-        })
-        
-        // Llamamos a la segunda función encargada de crear los datos
-        let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
-        crearSatelites(data, categoria, filtrar_dataset, ordenar_dataset);
-    }
-    
-      d3.select("#showCat1").on("click", () => preprocesarPeliculas("menos", false));
-      d3.select("#showCat2").on("click", () => preprocesarPeliculas("entre", false));
-      d3.select("#showCat3").on("click", () => preprocesarPeliculas("mas", false));
-
-
 
       function dibujarLineasPorPais(peliculasPorPais, visible = false) {
         // Eliminar líneas existentes antes de volver a dibujar
@@ -199,6 +163,7 @@ d3.csv("data.csv", parseo)
     botonLimpiar.on("click", function () {
       // Elimina todas las líneas existentes
     SVG1.selectAll(".linea-conexion").remove();
+    actualizarVisualizacion(null);
     });
 
       tooltip1
@@ -216,13 +181,10 @@ d3.csv("data.csv", parseo)
       })
       .on("click", (event, d) => {
         const paisSeleccionado = d.pais;
-
     // Verificar si las líneas están visibles
     const lineasVisible = SVG1.selectAll(".linea-conexion").size() > 0;
-
     // Obtener las películas del país seleccionado
     const peliculasEnPais = datos.filter(item => item.pais === paisSeleccionado);
-
     // Eliminar líneas existentes antes de volver a dibujar
     SVG1.selectAll(".linea-conexion").remove();
 
@@ -237,10 +199,125 @@ d3.csv("data.csv", parseo)
       // Llamar a la función para dibujar las barras
       dibujarBarras(datos, duracionPelicula, colorPelicula, nombrePelicula);
     }
-
-
-  
   });
+
+  function actualizarVisualizacion(datos) {
+
+    const datosFiltrados = datos === null ? datosOriginales : datos;
+
+    const peliculas = SVG1
+      .selectAll(".pelicula")
+      .data(datosFiltrados);
+
+    // Actualizar círculos existentes
+    peliculas.select(".circulo")
+      .transition()
+      .duration(500)
+      .attr("cx", (d) => escalaLongitud(d.longitud_random))
+      .attr("cy", (d) => escalaLatitud(d.latitud_random))
+      .attr("r", (d) => escalaDuracion(d.duracion));
+
+    // Añadir nuevos círculos
+    peliculas.enter()
+      .append("g")
+      .attr("class", "pelicula")
+      .append("circle")
+      .attr("class", "circulo")
+      .attr("fill", (d) => Color(d.calificacion))
+      .attr("cx", (d) => escalaLongitud(d.longitud_random))
+      .attr("cy", (d) => escalaLatitud(d.latitud_random))
+      .style("cursor", "pointer")
+      .attr("r", 0)
+      .transition()
+      .duration(500)
+      .attr("r", (d) => escalaDuracion(d.duracion));
+
+    // Eliminar círculos que ya no están en los datos
+    peliculas.exit().remove();
+
+    nuevosCirculos
+    .on("mouseover", (event, d) => {
+      d3.select(event.currentTarget) // Selecciona el círculo actual
+        .style("stroke", "white") // Establece el borde blanco
+        .style("stroke-width", 2); // Ancho del borde
+
+      tooltip
+        .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
+        Estreno: ${d.estreno_fecha}<br>Adición a Netflix: ${d.adicion}
+        <br>Duración: ${d.duracion} min<br>Calificación: ${d.calificacion}<br>País: ${d.pais}`)
+        .style("opacity", 1)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", (event, d) => {
+      d3.select(event.currentTarget) // Selecciona el círculo actual
+        .style("stroke", "none"); // Elimina el borde
+      tooltip.style("opacity", 0);
+    })
+    .on("click", (event, d) => {
+      const paisSeleccionado = d.pais;
+
+      // Resto del código...
+    });
+
+    // ... (código para dibujar líneas, actualizar tooltips, etc.)
+  }
+
+// Botones y selector de orden
+d3.select("#showCat1").on("click", () => {
+  const datosFiltrados = datos.filter((d) => d.categoria_duracion === "Menos 1 hora");
+  actualizarVisualizacion(datosFiltrados);
+});
+
+d3.select("#showCat2").on("click", () => {
+  const datosFiltrados = datos.filter((d) => d.categoria_duracion === "Entre 1 y 2 horas");
+  actualizarVisualizacion(datosFiltrados);
+});
+
+d3.select("#showCat3").on("click", () => {
+  const datosFiltrados = datos.filter((d) => d.categoria_duracion === "Más 2 horas");
+  actualizarVisualizacion(datosFiltrados);
+});
+
+d3.select("#order-by").on("change", () => {
+  let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
+  
+  // Implementa la lógica para ordenar según sea necesario
+  const datosOrdenados = datos.filter((d) => d.calificacion === ordenar_dataset);
+  actualizarVisualizacion(datosOrdenados);
+});
+
+const botonLimpiar = d3.select("#boton_limpiar");
+
+// Agrega un manejador de eventos para el clic en el botón
+botonLimpiar.on("click", function () {
+  // Elimina todas las líneas existentes
+SVG1.selectAll(".linea-conexion").remove();
+actualizarVisualizacion(null);
+});
+
+// Verificar si las líneas están visibles
+const lineasVisible = SVG1.selectAll(".linea-conexion").size() > 0;
+
+// Obtener las películas del país seleccionado
+const peliculasEnPais = datos.filter(item => item.pais === paisSeleccionado);
+
+// Eliminar líneas existentes antes de volver a dibujar
+SVG1.selectAll(".linea-conexion").remove();
+
+// Si las líneas no estaban visibles o pertenecen a un país diferente, mostrarlas
+if (!lineasVisible || SVG1.selectAll(".linea-conexion").data()[0] === undefined) {
+  
+      // Obtener la duración de la película seleccionada
+      const duracionPelicula = escalaBarra(d.duracion);
+      const colorPelicula = d.calificacion;
+      const nombrePelicula = d.titulo
+
+      // Llamar a la función para dibujar las barras
+      dibujarBarras(datos, duracionPelicula, colorPelicula, nombrePelicula)  
+
+}
+
     });
 
 let contador = 0; 
