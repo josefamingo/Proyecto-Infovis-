@@ -10,7 +10,7 @@ const HEIGHT_VIS_2 = 500;
 SVG1.attr("width", WIDTH_VIS_1).attr("height", HEIGHT_VIS_1);
 SVG2.attr("width", WIDTH_VIS_2).attr("height", HEIGHT_VIS_2);
 
-// Crear tooltip vacío con clase "tooltip". En el CSS está todo lo necesario
+
 let tooltip1 = d3.select("body").append("div")
     .style("opacity", 0)
     .style("width", 200)
@@ -99,7 +99,7 @@ d3.csv("data.csv", parseo)
       const datosPorPais = d3.group(datos, d => d.pais);
 
       function dibujarLineasPorPais(peliculasPorPais, visible = false) {
-        // Eliminar líneas existentes antes de volver a dibujar
+        
         SVG1.selectAll(".linea-conexion").remove();
       
         peliculasPorPais.forEach((peliculasEnPais) => {
@@ -107,7 +107,7 @@ d3.csv("data.csv", parseo)
             const pelicula1 = peliculasEnPais[i];
             const pelicula2 = peliculasEnPais[i + 1];
       
-            // Dibujar línea solo si es visible
+        
             if (visible) {
               SVG1.append("line")
                 .attr("class", "linea-conexion")
@@ -150,18 +150,14 @@ d3.csv("data.csv", parseo)
 
       SVG1.selectAll("circle")
       .on("mouseover", (event, d) => {
-        d3.select(event.currentTarget) // Selecciona el círculo actual
-      .style("stroke", "white") // Establece el borde blanco
-      .style("stroke-width", 2); // Ancho del borde
+        d3.select(event.currentTarget) 
+      .style("stroke", "white") 
+      .style("stroke-width", 2); 
     
-      
 
-      // Selecciona el botón por su ID
     const botonLimpiar = d3.select("#boton_limpiar");
 
-    // Agrega un manejador de eventos para el clic en el botón
     botonLimpiar.on("click", function () {
-      // Elimina todas las líneas existentes
     SVG1.selectAll(".linea-conexion").remove();
     actualizarVisualizacion(null);
     });
@@ -175,28 +171,27 @@ d3.csv("data.csv", parseo)
       .style("top", (event.pageY - 28) + "px");
       })
       .on("mouseout", (event, d) => {
-        d3.select(event.currentTarget) // Selecciona el círculo actual
-        .style("stroke", "none"); // Elimina el borde
+        d3.select(event.currentTarget) 
+        .style("stroke", "none"); 
       tooltip1.style("opacity", 0);
       })
       .on("click", (event, d) => {
         const paisSeleccionado = d.pais;
-    // Verificar si las líneas están visibles
+    
     const lineasVisible = SVG1.selectAll(".linea-conexion").size() > 0;
-    // Obtener las películas del país seleccionado
+    
     const peliculasEnPais = datos.filter(item => item.pais === paisSeleccionado);
-    // Eliminar líneas existentes antes de volver a dibujar
+    
     SVG1.selectAll(".linea-conexion").remove();
 
-    // Si las líneas no estaban visibles o pertenecen a un país diferente, mostrarlas
     if (!lineasVisible || SVG1.selectAll(".linea-conexion").data()[0] === undefined) {
       dibujarLineasPorPais([peliculasEnPais], true);
-      // Obtener la duración de la película seleccionada
+      
       const duracionPelicula = escalaBarra(d.duracion);
       const colorPelicula = d.calificacion;
       const nombrePelicula = d.titulo
 
-      // Llamar a la función para dibujar las barras
+      
       dibujarBarras(datos, duracionPelicula, colorPelicula, nombrePelicula);
     }
   });
@@ -209,7 +204,6 @@ d3.csv("data.csv", parseo)
       .selectAll(".pelicula")
       .data(datosFiltrados);
 
-    // Actualizar círculos existentes
     peliculas.select(".circulo")
       .transition()
       .duration(500)
@@ -217,7 +211,6 @@ d3.csv("data.csv", parseo)
       .attr("cy", (d) => escalaLatitud(d.latitud_random))
       .attr("r", (d) => escalaDuracion(d.duracion));
 
-    // Añadir nuevos círculos
     peliculas.enter()
       .append("g")
       .attr("class", "pelicula")
@@ -232,14 +225,13 @@ d3.csv("data.csv", parseo)
       .duration(500)
       .attr("r", (d) => escalaDuracion(d.duracion));
 
-    // Eliminar círculos que ya no están en los datos
     peliculas.exit().remove();
 
     nuevosCirculos
     .on("mouseover", (event, d) => {
-      d3.select(event.currentTarget) // Selecciona el círculo actual
-        .style("stroke", "white") // Establece el borde blanco
-        .style("stroke-width", 2); // Ancho del borde
+      d3.select(event.currentTarget) 
+        .style("stroke", "white") 
+        .style("stroke-width", 2); 
 
       tooltip
         .html(`Titulo: ${d.titulo}<br>Director: ${d.director}<br> 
@@ -250,20 +242,16 @@ d3.csv("data.csv", parseo)
         .style("top", (event.pageY - 28) + "px");
     })
     .on("mouseout", (event, d) => {
-      d3.select(event.currentTarget) // Selecciona el círculo actual
-        .style("stroke", "none"); // Elimina el borde
+      d3.select(event.currentTarget) 
+        .style("stroke", "none"); 
       tooltip.style("opacity", 0);
     })
     .on("click", (event, d) => {
       const paisSeleccionado = d.pais;
 
-      // Resto del código...
     });
-
-    // ... (código para dibujar líneas, actualizar tooltips, etc.)
   }
 
-// Botones y selector de orden
 d3.select("#showCat1").on("click", () => {
   const datosFiltrados = datos.filter((d) => d.categoria_duracion === "Menos 1 hora");
   actualizarVisualizacion(datosFiltrados);
@@ -282,38 +270,33 @@ d3.select("#showCat3").on("click", () => {
 d3.select("#order-by").on("change", () => {
   let ordenar_dataset = document.getElementById("order-by").selectedOptions[0].value;
   
-  // Implementa la lógica para ordenar según sea necesario
   const datosOrdenados = datos.filter((d) => d.calificacion === ordenar_dataset);
   actualizarVisualizacion(datosOrdenados);
 });
 
 const botonLimpiar = d3.select("#boton_limpiar");
 
-// Agrega un manejador de eventos para el clic en el botón
+
 botonLimpiar.on("click", function () {
-  // Elimina todas las líneas existentes
+
 SVG1.selectAll(".linea-conexion").remove();
 actualizarVisualizacion(null);
 });
 
-// Verificar si las líneas están visibles
+
 const lineasVisible = SVG1.selectAll(".linea-conexion").size() > 0;
 
-// Obtener las películas del país seleccionado
 const peliculasEnPais = datos.filter(item => item.pais === paisSeleccionado);
 
-// Eliminar líneas existentes antes de volver a dibujar
 SVG1.selectAll(".linea-conexion").remove();
 
-// Si las líneas no estaban visibles o pertenecen a un país diferente, mostrarlas
+
 if (!lineasVisible || SVG1.selectAll(".linea-conexion").data()[0] === undefined) {
   
-      // Obtener la duración de la película seleccionada
       const duracionPelicula = escalaBarra(d.duracion);
       const colorPelicula = d.calificacion;
       const nombrePelicula = d.titulo
 
-      // Llamar a la función para dibujar las barras
       dibujarBarras(datos, duracionPelicula, colorPelicula, nombrePelicula)  
 
 }
